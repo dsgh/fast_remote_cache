@@ -35,6 +35,14 @@ class Capistrano::Deploy::Strategy::FastRemoteCache < Capistrano::Deploy::Strate
       @bin_path ||= File.join(configuration[:shared_path], "bin")
     end
 
+    def update_repository_cache
+      logger.trace "updating the cached checkout on all servers"
+      command = "if [ -d #{repository_cache} ] && [ \"#{repository}\" = \"`#{source.scm(:info, repository_cache)}`\" ]; then " +
+        "#{source.sync(revision, repository_cache)}; " +
+        "else #{source.checkout(revision, repository_cache)}; fi"
+      scm_run(command)
+    end
+
     def copy_repository_cache
       logger.trace "copying the cached version to #{configuration[:release_path]}"
       ruby = configuration.fetch(:ruby, "ruby")
